@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Checker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Crypto Price Checker</h1>
+        <form method="POST">
+            <label for="crypto">Select Cryptocurrency:</label>
+            <select name="crypto" id="crypto">
+                {% for crypto in cryptos %}
+                <option value="{{ crypto }}">{{ crypto }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="currency">Select Currency:</label>
+            <select name="currency" id="currency">
+                {% for currency in currencies %}
+                <option value="{{ currency }}">{{ currency }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Get Price</button>
+        </form>
+
+        {% if price %}
+        <div class="price-box">
+            <h2>Price: {{ price }}</h2>
+        </div>
+        {% endif %}
+
+        {% if chart %}
+        <div class="chart-container">
+            <h3>LIVE  PRICE TREND</h3>
+            <img src="{{ chart }}" alt="Price Chart">
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

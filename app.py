@@ -6,78 +6,66 @@ import base64
 
 app = Flask(__name__)
 
-# List of 20 cryptocurrencies
-cryptos = [
-    "BTC", "ETH", "BNB", "XRP", "ADA", "DOGE", "SOL", "DOT", "LTC", "BCH",
-    "XLM", "LINK", "UNI", "AVAX", "MATIC", "TRX", "ETC", "NEO", "EOS", "XMR"
-]
+# List of cryptocurrencies (CoinGecko IDs)
+cryptos = {
+    "BTC": "bitcoin", "ETH": "ethereum", "BNB": "binancecoin", "XRP": "ripple",
+    "ADA": "cardano", "DOGE": "dogecoin", "SOL": "solana", "DOT": "polkadot",
+    "LTC": "litecoin", "BCH": "bitcoin-cash", "XLM": "stellar", "LINK": "chainlink",
+    "UNI": "uniswap", "AVAX": "avalanche-2", "MATIC": "matic-network",
+    "TRX": "tron", "ETC": "ethereum-classic", "NEO": "neo", "EOS": "eos",
+    "XMR": "monero"
+}
 
-# List of 20 currencies (including NGN)
-currencies = [
-    "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "INR", "SGD",
-    "NGN", "ZAR", "HKD", "BRL", "KRW", "SEK", "NZD", "MXN", "MYR", "RUB"
-]
+# List of currencies (including NGN)
+currencies = ["USD", "EUR", "GBP", "JPY", "NGN", "CAD", "CHF", "CNY", "INR", "SGD",
+              "ZAR", "HKD", "BRL", "KRW", "SEK", "NZD", "MXN", "MYR", "RUB", "AUD"]
 
 # Function to get crypto price
 def get_crypto_price(crypto, currency):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto.lower()}&vs_currencies={currency.lower()}"
+    crypto_id = cryptos.get(crypto.upper())  # Convert symbol to API ID
+    if not crypto_id:
+        return "Invalid Symbol"
+    
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_id}&vs_currencies={currency.lower()}"
     response = requests.get(url)
     data = response.json()
     
-    return data.get(crypto.lower(), {}).get(currency.lower(), "Invalid Symbol")
+    return data.get(crypto_id, {}).get(currency.lower(), "Invalid Symbol")
 
-# Function to generate a simple price chart
-def generate_chart(crypto, currency):
-    url = f"https://api.coingecko.com/api/v3/coins/{crypto.lower()}/market_chart?vs_currency={currency.lower()}&days=7"
-    response = requests.get(url)
+# Function to generate price chart
+def generate_chart():
+    x = ["1D", "1W", "1M", "3M", "1Y"]
+    y = [50, 55, 53, 60, 70]  # Sample data
     
-    if response.status_code != 200:
-        return None
-
-    data = response.json()
-    prices = [entry[1] for entry in data.get("prices", [])]
-    days = list(range(1, len(prices) + 1))
-
     plt.figure(figsize=(6, 3))
-    plt.plot(days, prices, marker="o", linestyle="-", color="cyan", markersize=5)
-    plt.title(f"{crypto.upper()} Price in {currency.upper()} (Last 7 Days)")
-    plt.xlabel("Days")
-    plt.ylabel(f"Price in {currency.upper()}")
-    plt.grid(True)
-    plt.tight_layout()
+    plt.plot(x, y, marker="o", linestyle="-", color="cyan")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.title("Price Trend")
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.xticks(fontsize=12)  # Adjust the number for bigger/smaller text
+    plt.xlabel("Time", fontsize=14)  # Make "Time" label bigger
 
-    # Save the chart to a bytes buffer
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png", transparent=True)
-    buf.seek(0)
-    chart_data = base64.b64encode(buf.getvalue()).decode("utf-8")
-    plt.close()
     
-    return chart_data
+
+    img = io.BytesIO()
+    plt.savefig(img, format="png")
+    img.seek(0)
+    chart_url = base64.b64encode(img.getvalue()).decode()
+    return f"data:image/png;base64,{chart_url}"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     price = None
     chart = None
-    selected_crypto = "BTC"
-    selected_currency = "USD"
-
+    
     if request.method == "POST":
-        selected_crypto = request.form.get("crypto", "BTC")
-        selected_currency = request.form.get("currency", "USD")
+        crypto = request.form["crypto"]
+        currency = request.form["currency"]
+        price = get_crypto_price(crypto, currency)
+        chart = generate_chart()
 
-        price = get_crypto_price(selected_crypto, selected_currency)
-        chart = generate_chart(selected_crypto, selected_currency)
-
-    return render_template(
-        "index.html",
-        price=price,
-        chart=chart,
-        cryptos=cryptos,
-        currencies=currencies,
-        selected_crypto=selected_crypto,
-        selected_currency=selected_currency
-    )
+    return render_template("index.html", cryptos=cryptos.keys(), currencies=currencies, price=price, chart=chart)
 
 if __name__ == "__main__":
     app.run(debug=True)

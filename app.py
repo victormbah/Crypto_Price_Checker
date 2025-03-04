@@ -16,11 +16,18 @@ cryptos = {
     "XMR": "monero"
 }
 
-# List of currencies (including NGN)
+# List of currencies
 currencies = ["USD", "EUR", "GBP", "JPY", "NGN", "CAD", "CHF", "CNY", "INR", "SGD",
               "ZAR", "HKD", "BRL", "KRW", "SEK", "NZD", "MXN", "MYR", "RUB", "AUD"]
 
-# Function to get crypto price
+# Dictionary to map currency codes to symbols
+currency_symbols = {
+    "USD": "$", "EUR": "€", "GBP": "£", "JPY": "¥", "NGN": "₦", "CAD": "C$", "CHF": "CHF",
+    "CNY": "¥", "INR": "₹", "SGD": "S$", "ZAR": "R", "HKD": "HK$", "BRL": "R$", "KRW": "₩",
+    "SEK": "kr", "NZD": "NZ$", "MXN": "MX$", "MYR": "RM", "RUB": "₽", "AUD": "A$"
+}
+
+# Function to get crypto price with symbol
 def get_crypto_price(crypto, currency):
     crypto_id = cryptos.get(crypto.upper())  # Convert symbol to API ID
     if not crypto_id:
@@ -30,7 +37,12 @@ def get_crypto_price(crypto, currency):
     response = requests.get(url)
     data = response.json()
     
-    return data.get(crypto_id, {}).get(currency.lower(), "Invalid Symbol")
+    price = data.get(crypto_id, {}).get(currency.lower(), "Invalid Symbol")
+
+    # Get currency symbol
+    symbol = currency_symbols.get(currency.upper(), currency)  # Default to currency code if symbol not found
+
+    return f"{symbol}{price}"  # Return formatted price with symbol
 
 # Function to generate price chart
 def generate_chart():
@@ -39,14 +51,11 @@ def generate_chart():
     
     plt.figure(figsize=(6, 3))
     plt.plot(x, y, marker="o", linestyle="-", color="cyan")
-    plt.xlabel("Time")
+    plt.xlabel("Time", fontsize=14)
     plt.ylabel("Price")
     plt.title("Price Trend")
     plt.grid(True, linestyle="--", alpha=0.5)
-    plt.xticks(fontsize=12)  # Adjust the number for bigger/smaller text
-    plt.xlabel("Time", fontsize=14)  # Make "Time" label bigger
-
-    
+    plt.xticks(fontsize=12)
 
     img = io.BytesIO()
     plt.savefig(img, format="png")
@@ -58,14 +67,22 @@ def generate_chart():
 def index():
     price = None
     chart = None
-    
+    selected_crypto = "BTC"  # Default crypto
+    selected_currency = "USD"  # Default currency
+
     if request.method == "POST":
-        crypto = request.form["crypto"]
-        currency = request.form["currency"]
-        price = get_crypto_price(crypto, currency)
+        selected_crypto = request.form["crypto"]
+        selected_currency = request.form["currency"]
+        price = get_crypto_price(selected_crypto, selected_currency)
         chart = generate_chart()
 
-    return render_template("index.html", cryptos=cryptos.keys(), currencies=currencies, price=price, chart=chart)
+    return render_template("index.html", 
+                           cryptos=cryptos.keys(), 
+                           currencies=currencies, 
+                           price=price, 
+                           chart=chart, 
+                           selected_crypto=selected_crypto, 
+                           selected_currency=selected_currency)
 
 if __name__ == "__main__":
     app.run(debug=True)

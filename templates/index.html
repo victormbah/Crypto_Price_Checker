@@ -4,41 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Price Checker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #121212;  /* Dark background */
+            color: white;  /* White text */
+        }
+
+        select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            background-color: #1e1e1e; /* Dark input fields */
+            color: white;
+            border: 1px solid #444;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #008CBA; /* Blue button */
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #005f73;
+        }
+
+        h1, h2 {
+            color: #ffcc00; /* Gold color for headings */
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Crypto Price Checker</h1>
+
         <form method="POST">
-            <label for="crypto">Select Cryptocurrency:</label>
+            <label for="crypto">Cryptocurrency:</label>
             <select name="crypto" id="crypto">
                 {% for crypto in cryptos %}
-                <option value="{{ crypto }}">{{ crypto }}</option>
+                    <option value="{{ crypto }}" {% if crypto == selected_crypto %}selected{% endif %}>{{ crypto }}</option>
                 {% endfor %}
             </select>
 
-            <label for="currency">Select Currency:</label>
+            <label for="currency">Currency:</label>
             <select name="currency" id="currency">
                 {% for currency in currencies %}
-                <option value="{{ currency }}">{{ currency }}</option>
+                    <option value="{{ currency }}" {% if currency == selected_currency %}selected{% endif %}>{{ currency }}</option>
                 {% endfor %}
             </select>
 
+            <br><br>
             <button type="submit">Get Price</button>
         </form>
 
         {% if price %}
-        <div class="price-box">
             <h2>Price: {{ price }}</h2>
-        </div>
-        {% endif %}
-
-        {% if chart %}
-        <div class="chart-container">
-            <h3>LIVE  PRICE TREND</h3>
-            <img src="{{ chart }}" alt="Price Chart">
-        </div>
+            <img src="{{ chart }}" alt="Price Trend Chart">
         {% endif %}
     </div>
+
 </body>
 </html>

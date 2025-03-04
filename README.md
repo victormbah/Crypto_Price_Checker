@@ -25,7 +25,7 @@ A simple **Flask-based** web application that allows users to check real-time cr
 
 1. **Clone this repository**
    ```bash
-   git clone https://github.com/yourusername/crypto_price_checker.git
+   git clone https://github.com/victormbah/crypto_price_checker.git
    cd crypto_price_checker
 ---
 

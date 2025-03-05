@@ -30,6 +30,7 @@ A simple **Flask-based** web application that allows users to check real-time cr
 ---
 
 ## Future Improvements
+ seprate CSS from HTML
  Add more cryptocurrencies
  Improve graph styling
  Enhance UI responsiveness
